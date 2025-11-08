@@ -1,0 +1,175 @@
+{
+  "success": true,
+  "documents": [
+    {
+      "data": {
+        "full_name": "Marco Alejandro Ramírez Camacho",
+        "email": "marcoalejandroramirezc@gmail.com",
+        "phone": "+57 (321) 433-0135",
+        "location": "Bogotá, Colombia",
+        "professional_summary": null,
+        "social_links": [
+          {
+            "type": "Portfolio",
+            "url": null
+          },
+          {
+            "type": "GitHub",
+            "url": null
+          }
+        ],
+        "experience": [
+          {
+            "company": "DiDi",
+            "role": "Goal Setting & Tactics Intern",
+            "start_date": "06-2024",
+            "end_date": "01-2025",
+            "location": null,
+            "description": "– Engineered and deployed an ensemble of ML models (Random Forest, GBM, SVM) for predictive performance analytics, reding manual evaluation latency by +90% while maintaining over 75% accuracy from previous data.\n– Architected and implemented interactive dashboards, leveraging complex SQL queries to surface high-potential restaurants leads and increasing acquisition efficiency and retention by 17.5% month over month in the release.\n– Orchestrated the development of automated ETL pipelines using Python and SQL, seamlessly integrating with DiDi’s proprietary data architecture to streamline data availability and reduce reporting cycle times by over 80%."
+          },
+          {
+            "company": "Amazon Sponsored",
+            "role": "Participant, UN Datathon 2024",
+            "start_date": "10-2024",
+            "end_date": "10-2024",
+            "location": null,
+            "description": "– Executed a geospatial analysis correlating census data with property value fluctuations to model the financial impact of gentrification.\n– Derived data-driven policy recommendations from spatial regression models to mitigate housing inequality."
+          }
+        ],
+        "independent_work": [
+          {
+            "company": "Alventory",
+            "role": "Founder",
+            "start_date": "04-2024",
+            "end_date": "Present",
+            "location": null,
+            "description": "– Engineered a SaaS ERP an intuitive AI engine as key differentiator that simplifies predictive inventory management, enabling partner companies to achieve a reduction in stockouts and create stock with natural language.\n– Developed the core system architecture using Django and Astro, managing predictive analytics, automated alerts, and intelligent procurement logic for a system generating $1.2K/month in revenue."
+          },
+          {
+            "company": "Artigo AI",
+            "role": "Founder",
+            "start_date": "02-2024",
+            "end_date": "Present",
+            "location": null,
+            "description": "– Architected an AI-driven language acquisition platform utilizing Natural Language Processing (NLP) for dynamic content personalization from web articles, using paid or free LLMs fine tuned for better performance.\n– Built a persistent data layer using PostgreSQL to track user progress, creating an Spaced Repetition (SRS) engine that improved knowledge retention by over 25%, measured by a reduction in user error rates on subsequent reviews."
+          },
+          {
+            "company": "Free Storage",
+            "role": "GitHub Repository",
+            "start_date": "11-2024",
+            "end_date": "11-2024",
+            "location": null,
+            "description": "– Developed a distributed file storage solution that leverages the Telegram API as a backend, creating a resilient and virtually limitless personal storage medium."
+          },
+          {
+            "company": "Proveo CRM",
+            "role": "GitHub Repository",
+            "start_date": "05-2024",
+            "end_date": "05-2024",
+            "location": null,
+            "description": "– Engineered a lightweight, full-stack CRM tailored for Colombian SMEs, featuring a React frontend and a Django backend with integrated Twilio API for automated client notifications.\n– Tested across 10+ local businesses, achieving an 80% adoption rate and a ≈ 22% gain in inventory productivity."
+          }
+        ],
+        "education": [
+          {
+            "institution": "University of Los Andes",
+            "degree": "B.Sc. Systems Engineering and Computer Science — GPA: 4.5 / 5.0",
+            "dates": "01-2022 – 12-2025"
+          }
+        ],
+        "languages": [
+          "English - C1"
+        ],
+        "document_language": "English",
+        "certifications": [
+          "Machine Learning Specialization — Stanford University 2024",
+          "Intro to SQL — Universidad de los Andes 2023",
+          "IELTS Academic C1 — British Council 2021"
+        ],
+        "generic_skills": [
+          "Java",
+          "Spring Boot",
+          "Python",
+          "Django",
+          "Flask",
+          "FastAPI",
+          "SQL",
+          "PostgreSQL",
+          "OracleSQL",
+          "MongoDB",
+          "Firebase",
+          "Scikit-learn",
+          "TensorFlow",
+          "Pandas",
+          "Numpy",
+          "Power BI",
+          "React",
+          "Next.js",
+          "Astro",
+          "Bootstrap",
+          "Tailwind",
+          "Google Cloud",
+          "AWS (S3, Lambda)",
+          "Docker",
+          "Jenkins",
+          "Git",
+          "Selenium",
+          "SonarQube"
+        ],
+        "achievements": null,
+        "volunteering": null,
+        "professional_affiliations": null,
+        "interests": null
+      },
+      "fidelity": 50.0,
+      "confidence_scores": {},
+      "metadata": {
+        "model_used": "gemini-2.5-pro",
+        "document_type": "cv",
+        "extraction_version": "2.0.0",
+        "is_complete": false,
+        "missing_fields": [
+          "professional_summary",
+          "achievements",
+          "volunteering",
+          "professional_affiliations",
+          "interests",
+          "comentario"
+        ],
+        "token_usage": {
+          "prompt_token_count": 2964,
+          "candidates_token_count": 1387,
+          "total_token_count": 6468
+        },
+        "source_document_type": "image",
+        "pre_extracted_links_count": 0
+      },
+      "processing_time": 28.296,
+      "extraction_timestamp": "2025-11-08T21:18:19.357781",
+      "document_type": "cv"
+    }
+  ],
+  "document_count": 1,
+  "processing_time": 28.297,
+  "token_usage": {
+    "prompt_token_count": 2964,
+    "candidates_token_count": 1387,
+    "total_token_count": 6468
+  },
+  "source_document_type": "image",
+  "pdf_info": {
+    "original_pages": 1,
+    "unique_pages": 1,
+    "duplicate_pages": 0,
+    "final_image_size": [
+      1489,
+      2105
+    ],
+    "final_size_mb": 0.55,
+    "compression_quality": 90,
+    "zoom_factor": 2.5,
+    "conversion_time": 0.2611672878265381,
+    "file_path": "/Users/marco/Desktop/programming/hackaton/DataMagicIAns/skillsense/tests/example_cv/resume.pdf",
+    "file_name": "resume.pdf"
+  }
+}

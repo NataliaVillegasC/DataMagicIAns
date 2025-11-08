@@ -1,0 +1,24 @@
+{
+  "generated_at": "20251108T211710Z",
+  "example_directory": "/Users/marco/Desktop/programming/hackaton/DataMagicIAns/skillsense/tests/example_cv",
+  "results": [
+    {
+      "file": "TFa8bd8a14-9ea2-40cf-af65-bf5e5b2944b53b370db6_wac-e9218189ece0.docx",
+      "path": "/Users/marco/Desktop/programming/hackaton/DataMagicIAns/skillsense/tests/example_cv/TFa8bd8a14-9ea2-40cf-af65-bf5e5b2944b53b370db6_wac-e9218189ece0.docx",
+      "status": "success",
+      "error": null,
+      "output_json": "/Users/marco/Desktop/programming/hackaton/DataMagicIAns/skillsense/tests/results/TFa8bd8a14-9ea2-40cf-af65-bf5e5b2944b53b370db6_wac-e9218189ece0.json",
+      "documents": 1,
+      "processing_time": 40.252
+    },
+    {
+      "file": "resume.pdf",
+      "path": "/Users/marco/Desktop/programming/hackaton/DataMagicIAns/skillsense/tests/example_cv/resume.pdf",
+      "status": "success",
+      "error": null,
+      "output_json": "/Users/marco/Desktop/programming/hackaton/DataMagicIAns/skillsense/tests/results/resume.json",
+      "documents": 1,
+      "processing_time": 28.297
+    }
+  ]
+}

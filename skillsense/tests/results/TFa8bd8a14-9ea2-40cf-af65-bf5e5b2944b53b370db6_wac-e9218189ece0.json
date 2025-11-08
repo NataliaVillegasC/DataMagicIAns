@@ -1,0 +1,113 @@
+{
+  "success": true,
+  "documents": [
+    {
+      "data": {
+        "full_name": "Janna Gardner",
+        "email": "janna@example.com",
+        "phone": "(716) 555-0100",
+        "location": "Chicago, Illinois",
+        "professional_summary": "Human Resources Generalist with 6+ years of experience assisting with and fulfilling organization staffing needs and requirements. A proven track record of using my excellent personal, communication and organization skills to lead and improve HR departments, recruit excellent personnel, and improve department efficiencies. Team player with excellent communication skills, high quality of work, driven and highly self-motivated. Strong negotiating skills and business acumen and able to work independently.",
+        "social_links": null,
+        "experience": [
+          {
+            "company": "Lamna Healthcare Company",
+            "role": "Human Resources Generalist",
+            "start_date": "01-20XX",
+            "end_date": "PRESENT",
+            "location": "Chicago, Illinois",
+            "description": "Review, update, and revise company hiring practices, vacation, and other human resources policies to ensure compliance with OSHA and all local, state, and federal labor regulations. By creating and maintaining a positive and responsive work environment, we raised employee retention rates by over 10% to achieve a greater than 90% employee retention over a 2-year period. Developed recruitment programs to successfully increase minority recruitment and meet affirmative action requirements. Led development team to build and deploy a dedicated recruitment website which reduced year-over-year recruitment costs by 14%."
+          },
+          {
+            "company": "Wholeness Healthcare",
+            "role": "Human Resources Intern",
+            "start_date": "06-20XX",
+            "end_date": "08-20XX",
+            "location": "Boomtown, Ohio",
+            "description": "Assisted in recruitment outreach to prospective employees. Organized and conducted several seminars for hospital employees to educate and update them regarding available employment benefit options. Arranged hospital-wide guest speakers symposia to educate management about new employment laws and workplace confidence and morale building techniques. Administrative tasks."
+          }
+        ],
+        "independent_work": null,
+        "education": [
+          {
+            "institution": "Jasper University",
+            "degree": "Bachelor of Arts Human Resources Management",
+            "dates": "05-20XX"
+          }
+        ],
+        "languages": null,
+        "document_language": "English",
+        "certifications": null,
+        "generic_skills": [
+          "Type 96 words per minute",
+          "Proficient with project management software",
+          "Team player",
+          "Excellent time management skills",
+          "Conflict management",
+          "Public speaking",
+          "Data analytics"
+        ],
+        "achievements": [
+          "3.8 GPA",
+          "Member of university's Honor Society"
+        ],
+        "volunteering": null,
+        "professional_affiliations": null,
+        "interests": [
+          "Literature",
+          "Environmental conservation",
+          "Art",
+          "Yoga",
+          "Skiing",
+          "Travel"
+        ]
+      },
+      "fidelity": 50.0,
+      "confidence_scores": {},
+      "metadata": {
+        "model_used": "gemini-2.5-pro",
+        "document_type": "cv",
+        "extraction_version": "2.0.0",
+        "is_complete": false,
+        "missing_fields": [
+          "social_links",
+          "independent_work",
+          "languages",
+          "certifications",
+          "volunteering",
+          "professional_affiliations",
+          "comentario"
+        ],
+        "token_usage": {
+          "prompt_token_count": 2964,
+          "candidates_token_count": 795,
+          "total_token_count": 7912
+        },
+        "source_document_type": "docx",
+        "pre_extracted_links_count": 0
+      },
+      "processing_time": 40.252,
+      "extraction_timestamp": "2025-11-08T21:17:50.797998",
+      "document_type": "cv"
+    }
+  ],
+  "document_count": 1,
+  "processing_time": 40.252,
+  "token_usage": {
+    "prompt_token_count": 2964,
+    "candidates_token_count": 795,
+    "total_token_count": 7912
+  },
+  "source_document_type": "docx",
+  "docx_info": {
+    "paragraph_count": 19,
+    "line_count": 19,
+    "links_detected": 0,
+    "rendered_line_count": 28,
+    "rendered_image_dimensions": [
+      1600,
+      548
+    ],
+    "approximate_characters": 2178
+  }
+}
