@@ -1,0 +1,26 @@
+# Django Core
+Django==5.2.7
+python-dotenv==1.0.0
+psycopg2-binary==2.9.9
+Jinja2==3.1.4
+dj_database_url==3.0.1
+whitenoise==6.11.0
+
+
+# API Framework
+django-ninja==1.4.3
+django_filter==25.2
+
+# Utilities
+requests==2.31.0
+python-dateutil==2.8.2
+pillow==10.4.0
+httpx==0.28.1
+
+# Authentication & JWT
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.3.1
+
+
+# Development
+django-cors-headers==4.6.0
