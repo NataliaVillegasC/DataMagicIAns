@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     # Local apps
+    'data',  # O*NET occupations and skills data
     'users',  # User management
 ]
 
@@ -71,8 +72,7 @@ TEMPLATES = [
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
-            'environment': 'skillsense.jinja2.environment',
-            'autoescape': True,
+
         },
     },
     {
@@ -103,10 +103,10 @@ if os.getenv('DB_ENGINE') == 'django.db.backends.postgresql':
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': os.getenv('DB_NAME', 'skillsense_db'),
-            'USER': os.getenv('DB_USER', 'skillsense_user'),
-            'PASSWORD': os.getenv('DB_PASSWORD', 'skillsense_password'),
+            'USER': os.getenv('DB_USER', 'postgres'),
+            'PASSWORD': os.getenv('DB_PASSWORD', 'pass'),
             'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5433'),
+            'PORT': os.getenv('DB_PORT', '5432'),
         }
     }
 else:
