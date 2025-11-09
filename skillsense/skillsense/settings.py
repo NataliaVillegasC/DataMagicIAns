@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     # Local apps
     'data',  # O*NET occupations and skills data
     'users',  # User management
+    'core',  # Core business logic (vacancies, applications)
 ]
 
 MIDDLEWARE = [ 
@@ -301,4 +302,13 @@ SIMPLE_JWT = {
 # GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
 # GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
 # GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI', 'http://localhost:4321/auth/google/callback')
+
+# Google Cloud Storage Configuration
+GCP_PROJECT_ID = os.getenv('GCP_PROJECT_ID', '')
+GCP_BUCKET_NAME = os.getenv('GCP_BUCKET_NAME', '')
+GCP_CREDENTIALS_JSON = os.getenv('GCP_CREDENTIALS_JSON', '')
+
+# Gemini AI Configuration
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-pro')
 

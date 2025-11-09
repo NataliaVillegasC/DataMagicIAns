@@ -1,3 +1,49 @@
 from django.db import models
+from utils.models import TimestampModel
+from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
+
+class SkillRequirement(TimestampModel):
+    """
+    Skill requirement model
+    """
+    skill = models.ForeignKey('data.Skill', on_delete=models.CASCADE, related_name='skill_requirements')
+    occupation = models.ForeignKey('data.OccupationAlternateTitle', on_delete=models.CASCADE, related_name='skill_requirements')
+    required = models.BooleanField(_('required'), default=True)
+
+class VacancyStatus(models.TextChoices):
+    """Vacancy status"""
+    ACTIVE = 'ACTIVE', _("Active")
+    INACTIVE = 'INACTIVE', _("Inactive")
+    FILL = 'FILL', _("Fill")
+    CANCELLED = 'CANCELLED', _("Cancelled")
+
+class ApplicationStatus(models.TextChoices):
+    """Application status"""
+    PENDING = 'PENDING', _("Pending")
+    REJECTED = 'REJECTED', _("Rejected")
+    HIRED = 'HIRED', _("Hired")
+    ON_HOLD = 'ON_HOLD', _("On Hold")
+    CANCELLED = 'CANCELLED', _("Cancelled")
+
+class Vacancy(TimestampModel):
+    """
+    Vacancy model
+    """
+    company = models.ForeignKey('users.Company', on_delete=models.CASCADE, related_name='vacancies')
+    title = models.CharField(_('title'), max_length=255)
+    description = models.TextField(_('description'))
+    location = models.CharField(_('location'), max_length=255)
+    technologies = models.ManyToManyField('data.Technology', related_name='vacancies')
+    skill_requirements = models.ManyToManyField('core.SkillRequirement', related_name='vacancies')
+    status = models.CharField(_('status'), max_length=255, choices=VacancyStatus.choices)
+
+class Application(TimestampModel):
+    """
+    Application model
+    """
+    vacancy = models.ForeignKey('core.Vacancy', on_delete=models.CASCADE, related_name='applications')
+    candidate = models.ForeignKey('users.Candidate', on_delete=models.CASCADE, related_name='applications')
+    status = models.CharField(_('status'), max_length=255, choices=ApplicationStatus.choices)
+    affinity_score = models.DecimalField(_('affinity score'), max_digits=10, decimal_places=2)
