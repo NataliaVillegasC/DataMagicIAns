@@ -1,0 +1,49 @@
+project_id = "syypyxgzjxermqblxlgj"
+
+[functions.analyze-candidate-complete]
+verify_jwt = true
+
+[functions.analyze-skills-ai]
+verify_jwt = true
+
+[functions.analyze-cv]
+verify_jwt = true
+
+[functions.score-candidate]
+verify_jwt = true
+
+[functions.evaluate-candidate]
+verify_jwt = true
+
+[functions.build-team]
+verify_jwt = true
+
+[functions.analyze-organization]
+verify_jwt = true
+
+[functions.send-candidate-message]
+verify_jwt = true
+
+[functions.schedule-interview]
+verify_jwt = true
+
+[functions.generate-survey-link]
+verify_jwt = true
+
+[functions.verify-background]
+verify_jwt = true
+
+[functions.analyze-candidate-overview]
+verify_jwt = true
+
+[functions.analyze-market-salary]
+verify_jwt = true
+
+[functions.generate-hiring-decision]
+verify_jwt = true
+
+[functions.populate-candidate-data]
+verify_jwt = false
+
+[functions.populate-batch]
+verify_jwt = false
