@@ -74,6 +74,8 @@ class User(AbstractUser):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(_('email address'), unique=True)  # Make email unique
+    
+    objects = UserManager()
 
     # MFA fields
     has_mfa = models.BooleanField(_('has MFA'), default=False)

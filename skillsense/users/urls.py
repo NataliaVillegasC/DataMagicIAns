@@ -9,6 +9,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView,
     LoginView,
+    CurrentUserView,
     CandidateViewSet,
     CompanyViewSet,
     CVUploadView,
@@ -25,6 +26,7 @@ urlpatterns = [
     # Authentication endpoints
     path('auth/register/', RegisterView.as_view(), name='register'),
     path('auth/login/', LoginView.as_view(), name='login'),
+    path('auth/me/', CurrentUserView.as_view(), name='current-user'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # CV upload endpoint (without candidate)

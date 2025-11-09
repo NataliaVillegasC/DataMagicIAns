@@ -125,6 +125,26 @@ class LoginView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class CurrentUserView(APIView):
+    """
+    API endpoint to get current authenticated user.
+    
+    GET /api/auth/me/
+    - Returns current user information
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """Get current authenticated user."""
+        user = request.user
+        serializer = UserSerializer(user)
+        
+        return Response({
+            'success': True,
+            'user': serializer.data
+        }, status=status.HTTP_200_OK)
+
+
 class IsCompanyMember(permissions.BasePermission):
     """
     Permission to check if user belongs to the same company as the object.
