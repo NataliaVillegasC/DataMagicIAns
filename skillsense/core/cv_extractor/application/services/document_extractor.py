@@ -179,7 +179,6 @@ class DocumentExtractor:
                 {
                     'data': dict,  # Extracted and validated fields
                     'fidelity': float,  # Overall confidence score (0-100)
-                    'confidence_scores': dict,  # Per-field confidence
                     'metadata': dict  # Additional extraction information
                 }
 
@@ -271,7 +270,7 @@ class DocumentExtractor:
                             'reason': f'Datos insuficientes: solo {len(validated_data)} campos válidos de {len(self.document_config.required_fields)} requeridos',
                             'validation_errors': validation_errors,
                             'extracted_fields': list(validated_data.keys()),
-                            'missing_fields': [f for f in self.document_config.required_fields if f not in validated_data and f != 'confidence_scores'],
+                            'missing_fields': [f for f in self.document_config.required_fields if f not in validated_data],
                             'fidelity_score': fidelity_score,
                             'comentario': validated_data.get('comentario')  # Incluir comentario de Gemini si existe
                         }
@@ -288,7 +287,7 @@ class DocumentExtractor:
                     all_data_fields_null = all(
                         validated_data.get(f) is None or validated_data.get(f) == '' or validated_data.get(f) == 'null'
                         for f in self.document_config.required_fields
-                        if f not in ['confidence_scores', 'comentario']
+                        if f != 'comentario'
                     )
                     
                     if comentario and all_data_fields_null:
@@ -302,8 +301,6 @@ class DocumentExtractor:
                         null_mandatory = []
                         
                         for field in mandatory_fields:
-                            if field == 'confidence_scores':
-                                continue
                             if field not in validated_data:
                                 missing_mandatory.append(field)
                             elif validated_data[field] is None or validated_data[field] == '' or validated_data[field] == 'null':
@@ -471,7 +468,6 @@ class DocumentExtractor:
                     'success': bool,  # Whether extraction succeeded
                     'data': dict,  # Extracted and validated fields
                     'fidelity': float,  # Overall confidence score (0-100)
-                    'confidence_scores': dict,  # Per-field confidence
                     'metadata': dict,  # Additional extraction information
                     'processing_time': float  # Time taken in seconds
                 }
@@ -1265,12 +1261,7 @@ class DocumentExtractor:
                     
                     # Mergear: doc2 rellena los campos null/faltantes de doc1
                     for field, value in doc2.items():
-                        if field == 'confidence_scores':
-                            # Mergear confidence scores
-                            if 'confidence_scores' not in merged_doc:
-                                merged_doc['confidence_scores'] = {}
-                            merged_doc['confidence_scores'].update(doc2.get('confidence_scores', {}))
-                        elif field not in merged_doc or merged_doc[field] is None or merged_doc[field] == '':
+                        if field not in merged_doc or merged_doc[field] is None or merged_doc[field] == '':
                             # Solo llenar si el campo está vacío en doc1
                             merged_doc[field] = value
                     
@@ -1374,41 +1365,39 @@ class DocumentExtractor:
                 min_required=self.settings.MIN_FIDELITY_SCORE
             )
 
-    def _validate_mandatory_fields(self, validated_data: Dict[str, Any], confidence_scores: Dict[str, float]):
+    def _validate_mandatory_fields(self, validated_data: Dict[str, Any]):
         """Validate mandatory fields according to document configuration.
 
-        Checks that all required fields are present and have sufficient
-        confidence scores based on the document configuration.
+        Checks that all required fields are present based on the document configuration.
 
         Args:
             validated_data (dict): Validated field data.
-            confidence_scores (dict): Per-field confidence scores.
 
         Returns:
-            float: Adjusted overall fidelity score after validation.
+            float: Overall fidelity score after validation (100.0 if valid).
 
         Raises:
-            LowFidelityError: If mandatory fields fail quality checks.
+            LowFidelityError: If mandatory fields are missing.
         """
-        is_valid, failed_mandatory, overall_score = self.document_config.validate_extraction_quality(
-            validated_data, confidence_scores
+        is_valid, failed_mandatory = self.document_config.validate_extraction_quality(
+            validated_data
         )
 
         if not is_valid:
             # Crear mensaje específico para campos obligatorios fallidos
             failed_fields_str = ", ".join(failed_mandatory)
             raise LowFidelityError(
-                fidelity_score=overall_score,
+                fidelity_score=0.0,
                 min_required=self.document_config.minimum_mandatory_score,
                 details={
                     'failed_mandatory_fields': failed_mandatory,
-                    'message': f"Campos obligatorios con calidad insuficiente: {failed_fields_str}",
+                    'message': f"Campos obligatorios faltantes: {failed_fields_str}",
                     'mandatory_fields': self.document_config.get_mandatory_fields(),
                     'optional_fields': self.document_config.get_optional_fields()
                 }
             )
 
-        return overall_score
+        return 100.0
 
     def _build_result(
         self,
@@ -1420,12 +1409,12 @@ class DocumentExtractor:
         """Build the final extraction result.
 
         Constructs a comprehensive result object containing extracted data,
-        confidence scores, metadata, and processing information.
+        metadata, and processing information.
 
         Args:
             validated_data (dict): Cleaned and validated extraction data.
             fidelity_score (float): Overall confidence score (0-100).
-            raw_extraction (dict): Original extraction including confidence scores.
+            raw_extraction (dict): Original extraction data.
             start_time (float): Timestamp when extraction started.
 
         Returns:
@@ -1438,8 +1427,6 @@ class DocumentExtractor:
             data=validated_data,
             document_type=self.document_config.document_type
         )
-
-        confidence_scores = raw_extraction.get('confidence_scores', {})
 
         metadata = {
             'model_used': self.settings.GEMINI_MODEL,
@@ -1454,7 +1441,6 @@ class DocumentExtractor:
         return ExtractionResult(
             data=validated_data,  # Usar diccionario directamente
             fidelity=fidelity_score,
-            confidence_scores=confidence_scores,
             metadata=metadata,
             processing_time=processing_time,
             document_type=self.document_config.document_type

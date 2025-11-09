@@ -828,7 +828,18 @@ class CVValidator:
                 validated['interests'] = None
         else:
             validated['interests'] = None
-
+        
+        # Keywords: list of strings
+        keywords = data.get('keywords')
+        if keywords:
+            if isinstance(keywords, list):
+                validated['keywords'] = [str(k).strip() for k in keywords if str(k).strip()]
+            else:
+                errors.append("keywords: must be a list")
+                validated['keywords'] = None
+        else:
+            validated['keywords'] = None
+        
         # Consider valid if at least full_name and email are present
         is_valid = bool(validated.get('full_name')) and bool(validated.get('email'))
 

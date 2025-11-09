@@ -43,7 +43,6 @@ Examples:
     >>> result = ExtractionResult(
     ...     data={'document_number': '12345678'},
     ...     fidelity=95.5,
-    ...     confidence_scores={'document_number': 98},
     ...     processing_time=1.234,
     ...     document_type='colombian_id'
     ... )
@@ -203,8 +202,7 @@ class GenericDocument:
         """Check if document has all required fields with non-null values.
 
         Validates document completeness by checking that all required fields
-        are present and have non-null values. Excludes 'confidence_scores'
-        from validation as it's metadata rather than document content.
+        are present and have non-null values.
 
         Args:
             required_fields: List of field names that must be present.
@@ -239,7 +237,6 @@ class GenericDocument:
             return all(
                 self.data.get(field) is not None
                 for field in required_fields
-                if field != 'confidence_scores'
             )
         return len(self.data) > 0
 
@@ -247,7 +244,7 @@ class GenericDocument:
         """Get list of required fields that are missing or have null values.
 
         Identifies which required fields are either not present in the document
-        or have None values. Excludes 'confidence_scores' from validation.
+        or have None values.
 
         Args:
             required_fields: List of field names to check.
@@ -260,29 +257,19 @@ class GenericDocument:
             >>> doc = GenericDocument(data={
             ...     'document_number': '12345678',
             ...     'name': 'JUAN',
-            ...     'birth_date': None,
-            ...     'confidence_scores': {'document_number': 95}
+            ...     'birth_date': None
             ... })
             >>>
             >>> required = ['document_number', 'name', 'birth_date', 'height']
             >>> missing = doc.get_missing_fields(required)
             >>> print(missing)  # ['birth_date', 'height']
-            >>>
-            >>> # With confidence_scores in required (ignored)
-            >>> required_with_scores = ['document_number', 'confidence_scores']
-            >>> missing = doc.get_missing_fields(required_with_scores)
-            >>> print(missing)  # [] (confidence_scores ignored)
-
-        Note:
-            The 'confidence_scores' field is automatically excluded from
-            missing field detection as it's considered metadata.
         """
         if not required_fields:
             return []
 
         missing = []
         for field in required_fields:
-            if field != 'confidence_scores' and self.data.get(field) is None:
+            if self.data.get(field) is None:
                 missing.append(field)
         return missing
 
@@ -341,7 +328,6 @@ class ExtractionResult:
     Attributes:
         data (Dict[str, Any]): Extracted document field values
         fidelity (float): Overall quality score (0-100) for the extraction
-        confidence_scores (Dict[str, float]): Per-field confidence scores (0-100)
         metadata (Dict[str, Any]): Additional processing metadata
         processing_time (float): Time taken for extraction in seconds
         extraction_timestamp (str): ISO timestamp of extraction completion
@@ -364,11 +350,6 @@ class ExtractionResult:
         ...         'last_names': 'RODRIGUEZ'
         ...     },
         ...     fidelity=87.5,
-        ...     confidence_scores={
-        ...         'document_number': 95,
-        ...         'first_names': 88,
-        ...         'last_names': 80
-        ...     },
         ...     metadata={
         ...         'model_version': '1.0.0',
         ...         'extraction_method': 'vision_llm'
@@ -384,11 +365,10 @@ class ExtractionResult:
         >>>
         >>> # Get detailed response (full information)
         >>> detailed = result.to_detailed_response()
-        >>> print(len(detailed))  # 7 keys: data, fidelity, confidence_scores, etc.
+        >>> print(len(detailed))  # 6 keys: data, fidelity, metadata, etc.
 
     Quality Metrics:
-        - fidelity: Overall extraction quality (weighted average of field confidences)
-        - confidence_scores: Individual field extraction confidence (0-100)
+        - fidelity: Overall extraction quality
         - processing_time: Performance metric in seconds
 
     Output Formats:
@@ -401,7 +381,6 @@ class ExtractionResult:
     """
     data: Dict[str, Any]  # Datos extraídos del documento
     fidelity: float  # Score de confianza general
-    confidence_scores: Dict[str, float] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
     processing_time: float = 0.0
     extraction_timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
@@ -420,8 +399,7 @@ class ExtractionResult:
         Examples:
             >>> result = ExtractionResult(
             ...     data={'document_number': '12345678'},
-            ...     fidelity=87.5,
-            ...     confidence_scores={'document_number': 95}
+            ...     fidelity=87.5
             ... )
             >>> api_response = result.to_api_response()
             >>> print(api_response)
@@ -449,7 +427,6 @@ class ExtractionResult:
         Response Fields:
             - data: Extracted document field values
             - fidelity: Overall quality score (rounded to 2 decimal places)
-            - confidence_scores: Per-field confidence scores
             - metadata: Additional processing information
             - processing_time: Extraction time in seconds (rounded to 3 decimal places)
             - extraction_timestamp: ISO timestamp of completion
@@ -459,7 +436,6 @@ class ExtractionResult:
             >>> result = ExtractionResult(
             ...     data={'document_number': '12345678'},
             ...     fidelity=87.542,
-            ...     confidence_scores={'document_number': 95},
             ...     metadata={'model': 'gpt-4v'},
             ...     processing_time=1.2345,
             ...     document_type='colombian_id'
@@ -467,7 +443,6 @@ class ExtractionResult:
             >>> detailed = result.to_detailed_response()
             >>> print(detailed['fidelity'])  # 87.54 (rounded)
             >>> print(detailed['processing_time'])  # 1.235 (rounded)
-            >>> print('confidence_scores' in detailed)  # True
             >>> print('metadata' in detailed)  # True
 
         Note:
@@ -477,7 +452,6 @@ class ExtractionResult:
         return {
             "data": self.data,
             "fidelity": round(self.fidelity, 2),
-            "confidence_scores": self.confidence_scores,
             "metadata": self.metadata,
             "processing_time": round(self.processing_time, 3),
             "extraction_timestamp": self.extraction_timestamp,

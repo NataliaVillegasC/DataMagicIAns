@@ -10,12 +10,16 @@
         "professional_summary": null,
         "social_links": [
           {
-            "type": "Portfolio",
+            "type": "portfolio",
             "url": null
           },
           {
-            "type": "GitHub",
+            "type": "github",
             "url": null
+          },
+          {
+            "type": "portfolio",
+            "url": "www.artigo-ai.com"
           }
         ],
         "experience": [
@@ -25,11 +29,11 @@
             "start_date": "06-2024",
             "end_date": "01-2025",
             "location": null,
-            "description": "– Engineered and deployed an ensemble of ML models (Random Forest, GBM, SVM) for predictive performance analytics, reding manual evaluation latency by +90% while maintaining over 75% accuracy from previous data.\n– Architected and implemented interactive dashboards, leveraging complex SQL queries to surface high-potential restaurants leads and increasing acquisition efficiency and retention by 17.5% month over month in the release.\n– Orchestrated the development of automated ETL pipelines using Python and SQL, seamlessly integrating with DiDi’s proprietary data architecture to streamline data availability and reduce reporting cycle times by over 80%."
+            "description": "– Engineered and deployed an ensemble of ML models (Random Forest, GBM, SVM) for predictive performance analytics, reducing manual evaluation latency by +90% while maintaining over 75% accuracy from previous data.\n– Architected and implemented interactive dashboards, leveraging complex SQL queries to surface high-potential restaurants leads and increasing acquisition efficiency and retention by 17.5% month over month in the release.\n– Orchestrated the development of automated ETL pipelines using Python and SQL, seamlessly integrating with DiDi’s proprietary data architecture to streamline data availability and reduce reporting cycle times by over 80%."
           },
           {
-            "company": "Amazon Sponsored",
-            "role": "Participant, UN Datathon 2024",
+            "company": "UN Datathon 2024 — Amazon Sponsored",
+            "role": "Participant",
             "start_date": "10-2024",
             "end_date": "10-2024",
             "location": null,
@@ -54,16 +58,16 @@
             "description": "– Architected an AI-driven language acquisition platform utilizing Natural Language Processing (NLP) for dynamic content personalization from web articles, using paid or free LLMs fine tuned for better performance.\n– Built a persistent data layer using PostgreSQL to track user progress, creating an Spaced Repetition (SRS) engine that improved knowledge retention by over 25%, measured by a reduction in user error rates on subsequent reviews."
           },
           {
-            "company": "Free Storage",
-            "role": "GitHub Repository",
+            "company": "Free Storage - GitHub Repository",
+            "role": "Developer",
             "start_date": "11-2024",
             "end_date": "11-2024",
             "location": null,
             "description": "– Developed a distributed file storage solution that leverages the Telegram API as a backend, creating a resilient and virtually limitless personal storage medium."
           },
           {
-            "company": "Proveo CRM",
-            "role": "GitHub Repository",
+            "company": "Proveo CRM - GitHub Repository",
+            "role": "Developer",
             "start_date": "05-2024",
             "end_date": "05-2024",
             "location": null,
@@ -82,9 +86,9 @@
         ],
         "document_language": "English",
         "certifications": [
-          "Machine Learning Specialization — Stanford University 2024",
-          "Intro to SQL — Universidad de los Andes 2023",
-          "IELTS Academic C1 — British Council 2021"
+          "Machine Learning Specialization — Stanford University",
+          "Intro to SQL — Universidad de los Andes",
+          "IELTS Academic C1 — British Council"
         ],
         "generic_skills": [
           "Java",
@@ -116,13 +120,63 @@
           "Selenium",
           "SonarQube"
         ],
-        "achievements": null,
+        "achievements": [
+          "reducing manual evaluation latency by +90%",
+          "increasing acquisition efficiency and retention by 17.5% month over month",
+          "reduce reporting cycle times by over 80%",
+          "generating $1.2K/month in revenue",
+          "improved knowledge retention by over 25%",
+          "achieving an 80% adoption rate",
+          "a ≈ 22% gain in inventory productivity"
+        ],
         "volunteering": null,
         "professional_affiliations": null,
-        "interests": null
+        "interests": null,
+        "keywords": [
+          "Java",
+          "Spring Boot",
+          "Python",
+          "Django",
+          "Flask",
+          "FastAPI",
+          "Programming",
+          "Technology Design",
+          "SQL",
+          "PostgreSQL",
+          "OracleSQL",
+          "MongoDB",
+          "Firebase",
+          "Database Management",
+          "Scikit-learn",
+          "TensorFlow",
+          "Pandas",
+          "Numpy",
+          "Power BI",
+          "Machine Learning",
+          "Data Analysis",
+          "Mathematics",
+          "Systems Analysis",
+          "React",
+          "Next.js",
+          "Astro",
+          "Bootstrap",
+          "Tailwind",
+          "Frontend Development",
+          "Google Cloud",
+          "AWS",
+          "Cloud Computing",
+          "Docker",
+          "Jenkins",
+          "DevOps",
+          "Operation and Control",
+          "Git",
+          "Version Control",
+          "Selenium",
+          "SonarQube",
+          "Quality Control Analysis"
+        ]
       },
       "fidelity": 50.0,
-      "confidence_scores": {},
       "metadata": {
         "model_used": "gemini-2.5-pro",
         "document_type": "cv",
@@ -130,31 +184,30 @@
         "is_complete": false,
         "missing_fields": [
           "professional_summary",
-          "achievements",
           "volunteering",
           "professional_affiliations",
           "interests",
           "comentario"
         ],
         "token_usage": {
-          "prompt_token_count": 2964,
-          "candidates_token_count": 1387,
-          "total_token_count": 6468
+          "prompt_token_count": 3263,
+          "candidates_token_count": 1748,
+          "total_token_count": 8461
         },
         "source_document_type": "image",
         "pre_extracted_links_count": 0
       },
-      "processing_time": 28.296,
-      "extraction_timestamp": "2025-11-08T21:18:19.357781",
+      "processing_time": 40.592,
+      "extraction_timestamp": "2025-11-09T01:25:30.139293",
       "document_type": "cv"
     }
   ],
   "document_count": 1,
-  "processing_time": 28.297,
+  "processing_time": 40.592,
   "token_usage": {
-    "prompt_token_count": 2964,
-    "candidates_token_count": 1387,
-    "total_token_count": 6468
+    "prompt_token_count": 3263,
+    "candidates_token_count": 1748,
+    "total_token_count": 8461
   },
   "source_document_type": "image",
   "pdf_info": {
@@ -168,7 +221,7 @@
     "final_size_mb": 0.55,
     "compression_quality": 90,
     "zoom_factor": 2.5,
-    "conversion_time": 0.2611672878265381,
+    "conversion_time": 0.2672750949859619,
     "file_path": "/Users/marco/Desktop/programming/hackaton/DataMagicIAns/skillsense/tests/example_cv/resume.pdf",
     "file_name": "resume.pdf"
   }

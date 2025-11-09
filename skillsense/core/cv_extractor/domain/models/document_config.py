@@ -124,12 +124,7 @@ class DocumentConfig(ABC):
         """
         # Agregar automáticamente el campo 'comentario' si no está presente
         if 'comentario' not in self.required_fields:
-            # Insertar antes de 'confidence_scores' si existe, si no al final
-            if 'confidence_scores' in self.required_fields:
-                idx = self.required_fields.index('confidence_scores')
-                self.required_fields.insert(idx, 'comentario')
-            else:
-                self.required_fields.append('comentario')
+            self.required_fields.append('comentario')
         
         # Auto-generar prompts si no se especifican
         if self.custom_prompts is None:
@@ -149,12 +144,12 @@ class DocumentConfig(ABC):
 
         # Configurar campos obligatorios y opcionales
         if self.mandatory_fields is None:
-            # Por defecto, todos los campos (excepto confidence_scores y comentario) son obligatorios
-            self.mandatory_fields = [f for f in self.required_fields if f not in ['confidence_scores', 'comentario']]
+            # Por defecto, todos los campos (excepto comentario) son obligatorios
+            self.mandatory_fields = [f for f in self.required_fields if f != 'comentario']
             self.optional_fields = ['comentario']
         else:
             # Calcular campos opcionales como la diferencia
-            all_data_fields = [f for f in self.required_fields if f not in ['confidence_scores', 'comentario']]
+            all_data_fields = [f for f in self.required_fields if f != 'comentario']
             self.optional_fields = [f for f in all_data_fields if f not in self.mandatory_fields]
             # Asegurar que 'comentario' siempre sea opcional
             if 'comentario' not in self.optional_fields:
@@ -262,22 +257,19 @@ class DocumentConfig(ABC):
         # Si TODOS los campos obligatorios son null, es un fallo
         return False
 
-    def validate_extraction_quality(self, data: Dict[str, Any], confidence_scores: Dict[str, float]) -> tuple:
-        """Validate extraction quality based on field requirements and confidence.
+    def validate_extraction_quality(self, data: Dict[str, Any]) -> tuple:
+        """Validate extraction quality based on field requirements.
 
         Evaluates the quality of document extraction by checking mandatory field
-        completeness and calculating weighted quality scores. Mandatory fields
-        that are missing or have low confidence will cause extraction to fail.
+        completeness. Mandatory fields that are missing will cause extraction to fail.
 
         Args:
             data: Dictionary containing extracted field values
-            confidence_scores: Dictionary mapping field names to confidence scores (0-100)
 
         Returns:
             A tuple containing:
-                - is_valid (bool): True if all mandatory fields meet requirements
+                - is_valid (bool): True if all mandatory fields are present
                 - failed_mandatory_fields (List[str]): List of mandatory fields that failed
-                - overall_quality_score (float): Weighted average quality score (0-100)
 
         Examples:
             >>> config = ColombianIDConfig()
@@ -286,74 +278,42 @@ class DocumentConfig(ABC):
             ...     'first_names': 'JUAN',
             ...     'last_names': None  # Missing required field
             ... }
-            >>> confidence = {
-            ...     'document_number': 95,
-            ...     'first_names': 85,
-            ...     'last_names': 20  # Low confidence
-            ... }
-            >>> is_valid, failed, score = config.validate_extraction_quality(data, confidence)
-            >>> print(f"Valid: {is_valid}, Failed: {failed}, Score: {score:.1f}")
-            Valid: False, Failed: ['last_names'], Score: 45.2
+            >>> is_valid, failed = config.validate_extraction_quality(data)
+            >>> print(f"Valid: {is_valid}, Failed: {failed}")
+            Valid: False, Failed: ['last_names']
 
         Quality Assessment Rules:
-            - Mandatory fields must have confidence >= minimum_mandatory_score
-            - Missing mandatory field values are treated as confidence 0
-            - Optional fields contribute to overall score but don't affect validity
-
-        Note:
-            The minimum_mandatory_score threshold is configurable per document type.
-            Colombian IDs require 95+ confidence, while other documents may be lower.
+            - Mandatory fields must have non-null values
+            - Optional fields don't affect validity
         """
         failed_mandatory = []
 
         # Verificar campos obligatorios
         for field in self.mandatory_fields:
             field_value = data.get(field)
-            field_confidence = confidence_scores.get(field, 0)
 
-            # Campo obligatorio faltante o con confianza muy baja
-            if field_value is None or field_confidence < self.minimum_mandatory_score:
+            # Campo obligatorio faltante
+            if field_value is None or field_value == '' or field_value == 'null':
                 failed_mandatory.append(field)
-
-        # Calcular score general (simple promedio)
-        total_confidence = 0
-        field_count = 0
-
-        for field in self.required_fields:
-            if field == 'confidence_scores':
-                continue
-
-            confidence = confidence_scores.get(field, 0)
-
-            # Los campos obligatorios que fallan contribuyen negativamente
-            if field in failed_mandatory:
-                confidence = 0
-
-            total_confidence += confidence
-            field_count += 1
-
-        overall_score = (total_confidence / field_count) if field_count > 0 else 0
 
         # La extracción es válida si no hay campos obligatorios fallidos
         is_valid = len(failed_mandatory) == 0
 
-        return is_valid, failed_mandatory, overall_score
+        return is_valid, failed_mandatory
 
     def validate_and_clean_data(self, raw_extraction: Dict[str, Any]) -> tuple:
         """Default validation/cleaning hook for extracted data.
 
-        By default, returns the data as-is (minus confidence_scores) with no
-        additional validation. Configs can override to implement their own
-        validation and normalization logic.
+        By default, returns the data as-is with no additional validation. 
+        Configs can override to implement their own validation and normalization logic.
 
         Args:
-            raw_extraction: Raw data returned by the model (may include confidence_scores)
+            raw_extraction: Raw data returned by the model
 
         Returns:
             Tuple: (is_valid: bool, validated_data: Dict[str, Any], validation_errors: List[str])
         """
         extraction_data = raw_extraction.copy()
-        extraction_data.pop('confidence_scores', {})
         return True, extraction_data, []
 
     def get_comentario_description(self) -> str:
@@ -498,7 +458,7 @@ Debes ser extremadamente preciso y no inventar información que no esté clarame
         if 'comentario' not in field_descriptions:
             field_descriptions['comentario'] = self.get_comentario_description()
 
-        data_fields = [f for f in self.required_fields if f != 'confidence_scores']
+        data_fields = self.required_fields
 
         # ============================================================
         # SECCIÓN 1: FIELD DESCRIPTIONS (Context)
@@ -614,18 +574,13 @@ JSON:
             >>> config = ColombianIDConfig()
             >>> response = {
             ...     'document_number': '12345678',
-            ...     'first_names': 'JUAN',
-            ...     'confidence_scores': {
-            ...         'document_number': 95,
-            ...         'first_names': 85
-            ...     }
+            ...     'first_names': 'JUAN'
             ... }
             >>> is_valid = config.validate_response_structure(response)
             >>> print(is_valid)  # Would be True if mandatory fields are present
 
         Validation Checks:
             - All mandatory_fields are present as keys (can be null)
-            - confidence_scores is optional (many configs don't use it)
             - Optional fields don't need to be present
 
         Note:
@@ -635,12 +590,6 @@ JSON:
         # Check that all mandatory fields are present (can be null, but must exist as keys)
         for field in self.mandatory_fields:
             if field not in response:
-                return False
-
-        # Optional: validate confidence_scores structure if present
-        # But don't require it - many document types don't use confidence scores
-        if 'confidence_scores' in response:
-            if not isinstance(response['confidence_scores'], dict):
                 return False
 
         return True
@@ -728,7 +677,7 @@ class ColombianIDConfig(DocumentConfig):
                 'document_number', 'first_names', 'last_names',
                 'birth_date', 'birth_place', 'height',
                 'blood_type', 'gender', 'expedition_date',
-                'expedition_place', 'confidence_scores'
+                'expedition_place'
             ],
             critical_rules=[
                 # POSITIVE PATTERNS: What TO do (following Gemini best practices)
@@ -871,7 +820,6 @@ La respuesta correcta es:
       "gender": "M",
       "expedition_date": "18-MAR-1983",
       "expedition_place": "BOGOTA D.C.",
-      "comentario": null
     }
   ]
 }
@@ -895,7 +843,6 @@ La respuesta correcta es:
       "gender": null,
       "expedition_date": null,
       "expedition_place": null,
-      "comentario": "Solo se detectó la parte trasera de la cédula (MRZ/código de barras). Se requiere la parte frontal con foto y datos visuales legibles."
     }
   ]
 }
@@ -922,7 +869,6 @@ La respuesta correcta es:
         non-null fields from the extraction are preserved.
         """
         extraction_data = raw_extraction.copy()
-        extraction_data.pop('confidence_scores', {})
 
         is_valid, validated_data, validation_errors = ColombianIDValidator.validate(extraction_data)
 
@@ -962,12 +908,14 @@ class CVConfig(DocumentConfig):
             - education: Array of academic credentials with:
                 * institution: University/institution name
                 * degree: Degree obtained
-                * dates: Study period
+                * start_date: Start date of the study
+                * end_date: End date of the study
 
         4. Skills/Competencies (Generalized):
             - languages: List of languages with proficiency levels
             - certifications: Professional certifications, licenses, courses
             - generic_skills: Listed competencies (technical, soft skills, domain-specific)
+            - keywords: Alternative skill names and O*NET taxonomy categories
 
     Critical Extraction Rules:
         - NO INVENT DATES: Extract dates exactly as shown, don't assume formats
@@ -996,11 +944,11 @@ class CVConfig(DocumentConfig):
                 'document_language',
                 'certifications',
                 'generic_skills',
+                'keywords',
                 'achievements',
                 'volunteering',
                 'professional_affiliations',
                 'interests',
-                'confidence_scores'
             ],
             critical_rules=[
                 "Return every field even when the value is null or [].",
@@ -1058,7 +1006,7 @@ class CVConfig(DocumentConfig):
                 "Initiatives without a direct employer: entrepreneurship, freelance consulting, private practice, independent research. Structure matches experience."
             ),
             'education': (
-                "Formal education. Each entry must include institution, degree, and dates (MM-YYYY – MM-YYYY). If only years appear, use 01-YYYY – 12-YYYY."
+                "Formal education. Each entry must include institution, degree, start_date, end_date or 'Present'. If only years appear, use 01-YYYY – 12-YYYY. If only one date is present, use the that year for both start and end date."
             ),
             'languages': (
                 "Languages with proficiency in the format 'English - C1'. Use English language names and common levels (A1-C2, Native, Fluent, Intermediate, Basic). Return null when absent."
@@ -1071,6 +1019,18 @@ class CVConfig(DocumentConfig):
             ),
             'generic_skills': (
                 "Skills listed in the CV—technical, soft, or industry-specific. Return as a list of strings."
+            ),
+            'keywords': (
+                "Array of skill keywords and related terms based on O*NET taxonomy. For each skill in generic_skills, "
+                "provide: (1) Alternative names/synonyms for that skill, and (2) The general O*NET skill category it belongs to. "
+                "Use ONLY these O*NET categories: Active Learning, Active Listening, Complex Problem Solving, Coordination, "
+                "Critical Thinking, Equipment Maintenance, Equipment Selection, Installation, Instructing, Judgment and Decision Making, "
+                "Learning Strategies, Management of Financial Resources, Management of Material Resources, Management of Personnel Resources, "
+                "Mathematics, Monitoring, Negotiation, Operation and Control, Operations Analysis, Operations Monitoring, Persuasion, "
+                "Programming, Quality Control Analysis, Reading Comprehension, Repairing, Science, Service Orientation, Social Perceptiveness, "
+                "Speaking, Systems Analysis, Systems Evaluation, Technology Design, Time Management, Troubleshooting, Writing. "
+                "Return as list of strings combining alternative names and O*NET categories (e.g., ['Python programming', 'Coding', 'Programming', 'JavaScript development', 'Project coordination', 'Coordination', 'Team management', 'Management of Personnel Resources']). "
+                "Return null if generic_skills is empty."
             ),
             'achievements': (
                 "Recognitions, awards, measurable outcomes, or notable publications. Provide as exact-text strings."
@@ -1116,14 +1076,13 @@ EXPECTED DOCUMENT STRUCTURE:
   "document_language": "English",
   "certifications": ["Certification ..."] or null,
   "generic_skills": ["Project Management", "SAP"] or null,
+  "keywords": ["Project coordination", "Coordination", "Team management", "Management of Personnel Resources", "SAP software", "Technology Design"] or null,
   "achievements": ["National Sales Award 2023"] or null,
   "volunteering": [
     {"organization": "...", "role": "...", "start_date": "...", "end_date": "...", "description": "..."}
   ] or null,
   "professional_affiliations": ["American Marketing Association"] or null,
   "interests": ["STEM Mentorship"] or null,
-  "comentario": null,
-  "confidence_scores": {...}
 }
 
 SAMPLE OUTPUT (CONDENSED):
@@ -1165,6 +1124,7 @@ SAMPLE OUTPUT (CONDENSED):
       "document_language": "Spanish",
       "certifications": ["Scrum Master Certified - Scrum Alliance (2019)"],
       "generic_skills": ["Project Management", "Team Leadership", "SAP"],
+      "keywords": ["Project coordination", "Coordination", "Project planning", "Team management", "Management of Personnel Resources", "Leadership", "SAP software", "Technology Design", "ERP systems"],
       "achievements": ["Named 'Top Operations Leader' 2022"],
       "volunteering": [
         {
@@ -1177,8 +1137,6 @@ SAMPLE OUTPUT (CONDENSED):
       ],
       "professional_affiliations": ["Madrid Association of Economists"],
       "interests": ["Mentoring early-stage entrepreneurs"],
-      "comentario": null,
-      "confidence_scores": null
     }
   ]
 }
@@ -1187,5 +1145,4 @@ SAMPLE OUTPUT (CONDENSED):
     def validate_and_clean_data(self, raw_extraction: Dict[str, Any]) -> tuple:
         """Validate and clean CV data using CVValidator."""
         extraction_data = raw_extraction.copy()
-        extraction_data.pop('confidence_scores', {})
         return CVValidator.validate(extraction_data)
