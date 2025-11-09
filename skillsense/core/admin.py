@@ -290,6 +290,7 @@ class ApplicationAdmin(admin.ModelAdmin):
     @admin.display(description=_('Status'))
     def status_badge(self, obj):
         colors = {
+            'SUGGESTED': '#9c27b0',  # Purple for AI suggestions
             'PENDING': '#ffc107',
             'REJECTED': '#dc3545',
             'HIRED': '#28a745',
@@ -354,18 +355,23 @@ class ApplicationAdmin(admin.ModelAdmin):
             obj.vacancy.get_status_display()
         )
     
-    actions = ['mark_as_pending', 'mark_as_hired', 'mark_as_rejected']
-    
+    actions = ['mark_as_pending', 'mark_as_hired', 'mark_as_rejected', 'mark_as_suggested']
+
+    @admin.action(description=_('Mark selected as Suggested'))
+    def mark_as_suggested(self, request, queryset):
+        updated = queryset.update(status='SUGGESTED')
+        self.message_user(request, f'{updated} applications marked as Suggested.')
+
     @admin.action(description=_('Mark selected as Pending'))
     def mark_as_pending(self, request, queryset):
         updated = queryset.update(status='PENDING')
         self.message_user(request, f'{updated} applications marked as Pending.')
-    
+
     @admin.action(description=_('Mark selected as Hired'))
     def mark_as_hired(self, request, queryset):
         updated = queryset.update(status='HIRED')
         self.message_user(request, f'{updated} applications marked as Hired.')
-    
+
     @admin.action(description=_('Mark selected as Rejected'))
     def mark_as_rejected(self, request, queryset):
         updated = queryset.update(status='REJECTED')

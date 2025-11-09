@@ -270,13 +270,17 @@ class CandidateAdmin(admin.ModelAdmin):
     autocomplete_fields = ['cv_file', 'registrated_by']
     filter_horizontal = ['skills', 'technologies']
     inlines = []  # Skills and techs are managed via filter_horizontal
-    
+
     fieldsets = (
         (_('Basic Information'), {
             'fields': ('full_name', 'email', 'phone', 'location')
         }),
         (_('CV Information'), {
             'fields': ('cv_file', 'cv_preview')
+        }),
+        (_('Supervised Data'), {
+            'fields': ('supervised_data',),
+            'description': _('Corrected candidate data reviewed and validated by HR person'),
         }),
         (_('Online Profiles'), {
             'fields': ('linkedin_url', 'github_url', 'portfolio_url', 'other_url'),

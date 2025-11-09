@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 import uuid
 from utils.models import TimestampModel, UserRegistratedBy
@@ -17,6 +17,56 @@ class Company(TimestampModel):
     address = models.TextField(_('address'), null=True, blank=True)
     website = models.URLField(_('website'), null=True, blank=True)
 
+
+class UserManager(BaseUserManager):
+    """
+    Custom user manager for email-based authentication
+    """
+    def create_user(self, email, password=None, **extra_fields):
+        """
+        Create and save a regular user with the given email and password.
+        """
+        if not email:
+            raise ValueError(_('The Email field must be set'))
+        email = self.normalize_email(email)
+
+        # Handle company requirement
+        if 'company' not in extra_fields or extra_fields['company'] is None:
+            # Create or get default company for regular users
+            company, _ = Company.objects.get_or_create(
+                name='Default Company',
+                defaults={'email': 'default@company.com'}
+            )
+            extra_fields['company'] = company
+
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        """
+        Create and save a superuser with the given email and password.
+        """
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_verified', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Superuser must have is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Superuser must have is_superuser=True.'))
+
+        # Create or get a default company for superusers
+        if 'company' not in extra_fields or extra_fields['company'] is None:
+            company, _ = Company.objects.get_or_create(
+                name='Admin Company',
+                defaults={'email': 'admin@company.com'}
+            )
+            extra_fields['company'] = company
+
+        return self.create_user(email, password, **extra_fields)
+
 class User(AbstractUser):
     """
     Custom User model with UUID primary key
@@ -24,21 +74,21 @@ class User(AbstractUser):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(_('email address'), unique=True)  # Make email unique
-    
+
     # MFA fields
     has_mfa = models.BooleanField(_('has MFA'), default=False)
     mfa_secret = models.CharField(_('MFA secret'), max_length=255, null=True, blank=True)
     mfa_verified = models.BooleanField(_('MFA verified'), default=False)
     mfa_verified_at = models.DateTimeField(_('MFA verified at'), null=True, blank=True)
-    
+
     # Email verification
     is_verified = models.BooleanField(_('is verified'), default=False)
     is_verified_at = models.DateTimeField(_('verified at'), null=True, blank=True)
     verification_token = models.CharField(_('verification token'), max_length=255, null=True, blank=True)
     verification_token_expires_at = models.DateTimeField(_('verification token expires at'), null=True, blank=True)
-    
+
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='users')
-    
+
     # Fix related_name clashes with auth.User
     groups = models.ManyToManyField(
         'auth.Group',
@@ -54,6 +104,9 @@ class User(AbstractUser):
         related_name='custom_user_set',
         related_query_name='custom_user',
     )
+
+    # Use custom manager
+    objects = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # username is not required
@@ -88,6 +141,10 @@ class Candidate(UserRegistratedBy):
     
     The CV file is stored in GCP Cloud Storage using custom storage backend.
     Files are organized as: {company_name}/candidates/{unique_filename}
+    
+    Data Flow:
+    - cv_file.extraction_result: Raw JSON data extracted by Gemini AI
+    - supervised_data: Corrected/validated data reviewed by HR person
     """
     full_name = models.CharField(_('full name'), max_length=255)
     email = models.EmailField(_('email address'))
@@ -98,10 +155,26 @@ class Candidate(UserRegistratedBy):
     portfolio_url = models.URLField(_('portfolio url'), null=True, blank=True)
     other_url = models.URLField(_('other url'), null=True, blank=True)
     
-    # CV file stored in GCP Cloud Storage
-    cv_file = models.OneToOneField(CVFile, on_delete=models.CASCADE, related_name='candidate')
-    skills = models.ManyToManyField('core.SkillRequirement', related_name='candidates')
-    technologies = models.ManyToManyField('data.Technology', related_name='candidates')
+    # CV file stored in GCP Cloud Storage (optional - can be added later)
+    cv_file = models.OneToOneField(
+        CVFile, 
+        on_delete=models.CASCADE, 
+        related_name='candidate',
+        null=True,
+        blank=True
+    )
+    
+    # Supervised/corrected data validated by HR (used for candidate creation)
+    supervised_data = models.JSONField(
+        _('supervised data'), 
+        null=True, 
+        blank=True,
+        help_text=_('Corrected candidate data reviewed and validated by HR person')
+    )
+    
+    # Direct relationships with O*NET taxonomy for matching
+    skills = models.ManyToManyField('data.Skill', related_name='candidates', blank=True)
+    technologies = models.ManyToManyField('data.Technology', related_name='candidates', blank=True)
 
     
     class Meta:

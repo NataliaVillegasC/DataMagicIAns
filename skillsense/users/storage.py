@@ -4,17 +4,28 @@ Custom storage configurations for users app.
 Provides pre-configured storage instances for different file types.
 """
 
-from utils.gcp_storage import GCPStorage
-from utils.enums import StorageDomain
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from datetime import timedelta
+import os
 
-
-# Storage for candidate CVs
-candidate_cv_storage = GCPStorage(
-    domain=StorageDomain.CANDIDATES,
-    generate_signed_urls=True,
-    signed_url_expiration=timedelta(hours=24)
-)
+# Use local storage in development if GCP credentials are not available
+if settings.DEBUG and not getattr(settings, 'GCP_CREDENTIALS_JSON', None):
+    # Local file system storage for development
+    candidate_cv_storage = FileSystemStorage(
+        location=os.path.join(settings.MEDIA_ROOT, 'candidate_cvs'),
+        base_url='/media/candidate_cvs/'
+    )
+else:
+    # GCP Storage for production
+    from utils.gcp_storage import GCPStorage
+    from utils.enums import StorageDomain
+    
+    candidate_cv_storage = GCPStorage(
+        domain=StorageDomain.CANDIDATES,
+        generate_signed_urls=True,
+        signed_url_expiration=timedelta(hours=24)
+    )
 
 
 def get_candidate_cv_upload_path(instance, filename):
