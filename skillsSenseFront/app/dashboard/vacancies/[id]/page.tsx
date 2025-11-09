@@ -56,9 +56,18 @@ export default function VacancyDetailPage() {
         top_n: 10,
       });
       
-      setMatches(response.matches || []);
-    } catch (error) {
+      console.log('Match response:', response);
+      
+      if (response.success && response.matches) {
+        setMatches(response.matches);
+      } else {
+        console.error('Invalid response format:', response);
+        setMatches([]);
+      }
+    } catch (error: any) {
       console.error('Error finding matches:', error);
+      alert(error.message || 'Failed to find matches');
+      setMatches([]);
     } finally {
       setIsLoadingMatches(false);
     }

@@ -1,61 +1,95 @@
 """
 Serializers for core app.
 
-Provides serialization/deserialization for Vacancy, Application, and SkillRequirement models.
+Provides serialization for Vacancy, Application, and SkillRequirement models.
 """
 
 from rest_framework import serializers
 from django.db import transaction
-from .models import Vacancy, Application, SkillRequirement, VacancyStatus, ApplicationStatus
-from users.serializers import CompanySerializer
-from data.models import Technology, Skill
+from .models import Vacancy, Application, SkillRequirement
+from data.models import Skill, Technology, OccupationAlternateTitle
+from data.serializers import TechnologySerializer, SkillSerializer
+
+
+class OccupationAlternateTitleSerializer(serializers.ModelSerializer):
+    """Serializer for OccupationAlternateTitle (lightweight)."""
+    
+    class Meta:
+        model = OccupationAlternateTitle
+        fields = ['id', 'alternate_title', 'short_title']
 
 
 class SkillRequirementSerializer(serializers.ModelSerializer):
-    """Serializer for SkillRequirement with skill details."""
-
-    skill_name = serializers.CharField(source='skill.element_name', read_only=True)
-    skill_id_code = serializers.CharField(source='skill.element_id', read_only=True)
-    occupation_name = serializers.CharField(source='occupation.title', read_only=True)
-
+    """Serializer for SkillRequirement with nested relationships."""
+    
+    skill = SkillSerializer(read_only=True)
+    occupation = OccupationAlternateTitleSerializer(read_only=True)
+    
     class Meta:
         model = SkillRequirement
         fields = [
             'id',
             'skill',
-            'skill_name',
-            'skill_id_code',
             'occupation',
-            'occupation_name',
             'required',
             'created_at',
-            'updated_at'
+            'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
-class TechnologySerializer(serializers.ModelSerializer):
-    """Lightweight serializer for Technology."""
-
-    category_name = serializers.SerializerMethodField()
-
+class SkillRequirementCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating SkillRequirement with get_or_create."""
+    
+    skill_id = serializers.IntegerField(write_only=True)
+    occupation_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    
     class Meta:
-        model = Technology
-        fields = ['id', 'example', 'category_name']
+        model = SkillRequirement
+        fields = ['id', 'skill_id', 'occupation_id', 'required']
         read_only_fields = ['id']
-
-    def get_category_name(self, obj):
-        return obj.category.commodity_title if obj.category else None
+    
+    def create(self, validated_data):
+        """Create or get existing skill requirement."""
+        skill_id = validated_data.pop('skill_id')
+        occupation_id = validated_data.pop('occupation_id', None)
+        required = validated_data.get('required', True)
+        
+        try:
+            skill = Skill.objects.get(id=skill_id)
+        except Skill.DoesNotExist:
+            raise serializers.ValidationError({'skill_id': 'Skill not found'})
+        
+        occupation = None
+        if occupation_id:
+            try:
+                occupation = OccupationAlternateTitle.objects.get(id=occupation_id)
+            except OccupationAlternateTitle.DoesNotExist:
+                raise serializers.ValidationError({'occupation_id': 'Occupation not found'})
+        
+        # Get or create skill requirement
+        skill_req, created = SkillRequirement.objects.get_or_create(
+            skill=skill,
+            occupation=occupation,
+            defaults={'required': required}
+        )
+        
+        # Update required flag if already exists
+        if not created and skill_req.required != required:
+            skill_req.required = required
+            skill_req.save(update_fields=['required'])
+        
+        return skill_req
 
 
 class VacancyListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for vacancy list views."""
-
+    """Lightweight serializer for vacancy list."""
+    
     company_name = serializers.CharField(source='company.name', read_only=True)
     technology_count = serializers.SerializerMethodField()
     skill_count = serializers.SerializerMethodField()
     application_count = serializers.SerializerMethodField()
-
+    
     class Meta:
         model = Vacancy
         fields = [
@@ -68,28 +102,25 @@ class VacancyListSerializer(serializers.ModelSerializer):
             'skill_count',
             'application_count',
             'created_at',
-            'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
+    
     def get_technology_count(self, obj):
         return obj.technologies.count()
-
+    
     def get_skill_count(self, obj):
         return obj.skill_requirements.count()
-
+    
     def get_application_count(self, obj):
         return obj.applications.count()
 
 
 class VacancyDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for vacancy with all relationships."""
-
-    company = CompanySerializer(read_only=True)
+    
     technologies = TechnologySerializer(many=True, read_only=True)
     skill_requirements = SkillRequirementSerializer(many=True, read_only=True)
     application_count = serializers.SerializerMethodField()
-
+    
     class Meta:
         model = Vacancy
         fields = [
@@ -103,30 +134,30 @@ class VacancyDetailSerializer(serializers.ModelSerializer):
             'skill_requirements',
             'application_count',
             'created_at',
-            'updated_at'
+            'updated_at',
         ]
         read_only_fields = ['id', 'company', 'created_at', 'updated_at']
-
+    
     def get_application_count(self, obj):
         return obj.applications.count()
 
 
 class VacancyCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating vacancies."""
-
+    
     technology_ids = serializers.ListField(
         child=serializers.IntegerField(),
         write_only=True,
         required=False,
-        help_text="List of technology IDs to associate with vacancy"
+        allow_empty=True
     )
     skill_requirement_ids = serializers.ListField(
-        child=serializers.UUIDField(),
+        child=serializers.CharField(),  # UUID
         write_only=True,
         required=False,
-        help_text="List of skill requirement IDs to associate with vacancy"
+        allow_empty=True
     )
-
+    
     class Meta:
         model = Vacancy
         fields = [
@@ -135,131 +166,68 @@ class VacancyCreateSerializer(serializers.ModelSerializer):
             'location',
             'status',
             'technology_ids',
-            'skill_requirement_ids'
+            'skill_requirement_ids',
         ]
-
-    def validate_status(self, value):
-        """Validate status is valid."""
-        if value not in dict(VacancyStatus.choices):
-            raise serializers.ValidationError(
-                f"Invalid status. Must be one of: {', '.join(dict(VacancyStatus.choices).keys())}"
-            )
-        return value
-
-    def validate_technology_ids(self, value):
-        """Validate all technology IDs exist."""
-        if value:
-            existing_ids = set(Technology.objects.filter(id__in=value).values_list('id', flat=True))
-            invalid_ids = set(value) - existing_ids
-            if invalid_ids:
-                raise serializers.ValidationError(
-                    f"Invalid technology IDs: {invalid_ids}"
-                )
-        return value
-
-    def validate_skill_requirement_ids(self, value):
-        """Validate all skill requirement IDs exist."""
-        if value:
-            existing_ids = set(SkillRequirement.objects.filter(id__in=value).values_list('id', flat=True))
-            invalid_ids = set(value) - set(str(id) for id in existing_ids)
-            if invalid_ids:
-                raise serializers.ValidationError(
-                    f"Invalid skill requirement IDs: {invalid_ids}"
-                )
-        return value
-
+    
     @transaction.atomic
     def create(self, validated_data):
-        """Create vacancy with company and relationships."""
+        """Create vacancy with technologies and skill requirements."""
         technology_ids = validated_data.pop('technology_ids', [])
         skill_requirement_ids = validated_data.pop('skill_requirement_ids', [])
-
-        # Get company from request context
-        company = self.context['request'].user.company
-        validated_data['company'] = company
-
+        
         # Create vacancy
-        vacancy = Vacancy.objects.create(**validated_data)
-
+        vacancy = Vacancy.objects.create(
+            company=self.context['request'].user.company,
+            **validated_data
+        )
+        
         # Add technologies
         if technology_ids:
             technologies = Technology.objects.filter(id__in=technology_ids)
             vacancy.technologies.set(technologies)
-
+        
         # Add skill requirements
         if skill_requirement_ids:
-            skill_requirements = SkillRequirement.objects.filter(id__in=skill_requirement_ids)
-            vacancy.skill_requirements.set(skill_requirements)
-
+            skill_reqs = SkillRequirement.objects.filter(id__in=skill_requirement_ids)
+            vacancy.skill_requirements.set(skill_reqs)
+        
         return vacancy
 
 
-class VacancyUpdateSerializer(serializers.ModelSerializer):
+class VacancyUpdateSerializer(VacancyCreateSerializer):
     """Serializer for updating vacancies."""
-
-    technology_ids = serializers.ListField(
-        child=serializers.IntegerField(),
-        write_only=True,
-        required=False,
-        help_text="List of technology IDs to associate with vacancy"
-    )
-    skill_requirement_ids = serializers.ListField(
-        child=serializers.UUIDField(),
-        write_only=True,
-        required=False,
-        help_text="List of skill requirement IDs to associate with vacancy"
-    )
-
-    class Meta:
-        model = Vacancy
-        fields = [
-            'title',
-            'description',
-            'location',
-            'status',
-            'technology_ids',
-            'skill_requirement_ids'
-        ]
-
-    def validate_status(self, value):
-        """Validate status is valid."""
-        if value and value not in dict(VacancyStatus.choices):
-            raise serializers.ValidationError(
-                f"Invalid status. Must be one of: {', '.join(dict(VacancyStatus.choices).keys())}"
-            )
-        return value
-
+    
     @transaction.atomic
     def update(self, instance, validated_data):
-        """Update vacancy and relationships."""
+        """Update vacancy."""
         technology_ids = validated_data.pop('technology_ids', None)
         skill_requirement_ids = validated_data.pop('skill_requirement_ids', None)
-
+        
         # Update basic fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
+        
         # Update technologies if provided
         if technology_ids is not None:
             technologies = Technology.objects.filter(id__in=technology_ids)
             instance.technologies.set(technologies)
-
+        
         # Update skill requirements if provided
         if skill_requirement_ids is not None:
-            skill_requirements = SkillRequirement.objects.filter(id__in=skill_requirement_ids)
-            instance.skill_requirements.set(skill_requirements)
-
+            skill_reqs = SkillRequirement.objects.filter(id__in=skill_requirement_ids)
+            instance.skill_requirements.set(skill_reqs)
+        
         return instance
 
 
-class ApplicationSerializer(serializers.ModelSerializer):
-    """Serializer for Application model."""
-
+class ApplicationListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for application list."""
+    
     vacancy_title = serializers.CharField(source='vacancy.title', read_only=True)
     candidate_name = serializers.CharField(source='candidate.full_name', read_only=True)
     candidate_email = serializers.CharField(source='candidate.email', read_only=True)
-
+    
     class Meta:
         model = Application
         fields = [
@@ -272,14 +240,56 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'status',
             'affinity_score',
             'created_at',
-            'updated_at'
+        ]
+
+
+class ApplicationDetailSerializer(serializers.ModelSerializer):
+    """Detailed serializer for application."""
+    
+    vacancy_title = serializers.CharField(source='vacancy.title', read_only=True)
+    candidate_name = serializers.CharField(source='candidate.full_name', read_only=True)
+    candidate_email = serializers.CharField(source='candidate.email', read_only=True)
+    
+    class Meta:
+        model = Application
+        fields = [
+            'id',
+            'vacancy',
+            'vacancy_title',
+            'candidate',
+            'candidate_name',
+            'candidate_email',
+            'status',
+            'affinity_score',
+            'created_at',
+            'updated_at',
         ]
         read_only_fields = ['id', 'affinity_score', 'created_at', 'updated_at']
 
-    def validate_status(self, value):
-        """Validate status is valid."""
-        if value not in dict(ApplicationStatus.choices):
-            raise serializers.ValidationError(
-                f"Invalid status. Must be one of: {', '.join(dict(ApplicationStatus.choices).keys())}"
-            )
-        return value
+
+class ApplicationCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating applications."""
+    
+    class Meta:
+        model = Application
+        fields = ['vacancy', 'candidate', 'status']
+    
+    def create(self, validated_data):
+        """Create application and calculate affinity score."""
+        vacancy = validated_data['vacancy']
+        candidate = validated_data['candidate']
+        
+        # Calculate affinity score using matching service
+        from .matching_service import MatchingService
+        matcher = MatchingService()
+        match_result = matcher.calculate_match(vacancy, candidate)
+        
+        # Create application with calculated score
+        application = Application.objects.create(
+            vacancy=vacancy,
+            candidate=candidate,
+            status=validated_data.get('status', 'PENDING'),
+            affinity_score=match_result['total_score']
+        )
+        
+        return application

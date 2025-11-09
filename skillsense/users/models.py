@@ -129,6 +129,7 @@ class CVFile(TimestampModel):
         _('CV file'),
         upload_to=get_candidate_cv_upload_path,
         storage=candidate_cv_storage,
+        max_length=500,  # Increased for long GCP paths
         null=True,
         blank=True,
         help_text=_('Candidate CV/Resume file (PDF, DOC, DOCX)')
